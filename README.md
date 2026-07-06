@@ -1,16 +1,40 @@
-# React + Vite
+# @jridgewell/resolve-uri
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> Resolve a URI relative to an optional base URI
 
-Currently, two official plugins are available:
+Resolve any combination of absolute URIs, protocol-realtive URIs, absolute paths, or relative paths.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Installation
 
-## React Compiler
+```sh
+npm install @jridgewell/resolve-uri
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Usage
 
-## Expanding the Oxlint configuration
+```typescript
+function resolve(input: string, base?: string): string;
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+```js
+import resolve from '@jridgewell/resolve-uri';
+
+resolve('foo', 'https://example.com'); // => 'https://example.com/foo'
+```
+
+| Input                 | Base                    | Resolution                     | Explanation                                                  |
+|-----------------------|-------------------------|--------------------------------|--------------------------------------------------------------|
+| `https://example.com` | _any_                   | `https://example.com/`         | Input is normalized only                                     |
+| `//example.com`       | `https://base.com/`     | `https://example.com/`         | Input inherits the base's protocol                           |
+| `//example.com`       | _rest_                  | `//example.com/`               | Input is normalized only                                     |
+| `/example`            | `https://base.com/`     | `https://base.com/example`     | Input inherits the base's origin                             |
+| `/example`            | `//base.com/`           | `//base.com/example`           | Input inherits the base's host and remains protocol relative |
+| `/example`            | _rest_                  | `/example`                     | Input is normalized only                                     |
+| `example`             | `https://base.com/dir/` | `https://base.com/dir/example` | Input is joined with the base                                |
+| `example`             | `https://base.com/file` | `https://base.com/example`     | Input is joined with the base without its file               |
+| `example`             | `//base.com/dir/`       | `//base.com/dir/example`       | Input is joined with the base's last directory               |
+| `example`             | `//base.com/file`       | `//base.com/example`           | Input is joined with the base without its file               |
+| `example`             | `/base/dir/`            | `/base/dir/example`            | Input is joined with the base's last directory               |
+| `example`             | `/base/file`            | `/base/example`                | Input is joined with the base without its file               |
+| `example`             | `base/dir/`             | `base/dir/example`             | Input is joined with the base's last directory               |
+| `example`             | `base/file`             | `base/example`                 | Input is joined with the base without its file               |
